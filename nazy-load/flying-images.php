@@ -1,6 +1,6 @@
 <?php
 /**
- * Plugin Name: Flying Images: Optimize and Lazy Load Images for Faster Page Speed
+ * Plugin Name: Flying Images
  * Plugin URI: https://wordpress.org/plugins/nazy-load/
  * Description: Optimize and lazy load images to reduce load times, save bandwidth, and improve performance, delivering a faster and smoother user experience.
  * Author: WP Speed Matters

@@ -4,7 +4,7 @@ Contributors: gijo
 Donate link: https://www.buymeacoffee.com/gijovarghese
 Tags: compress images, adaptive images, cdn, image compression
 Requires at least: 4.5
-Tested up to: 6.6
+Tested up to: 6.8
 Requires PHP: 5.6
 Stable tag: 2.4.14
 License: GPLv2 or later
