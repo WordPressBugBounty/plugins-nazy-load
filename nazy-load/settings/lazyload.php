@@ -4,7 +4,10 @@ function flying_pages_settings_lazy_load() {
     if (isset($_POST['submit'])) {
         update_option('flying_images_enable_lazyloading', sanitize_text_field($_POST['enable_lazyloading']));
         update_option('flying_images_lazymethod', sanitize_text_field($_POST['lazymethod']));
-        update_option('flying_images_margin', sanitize_text_field($_POST['margin']));
+
+        $margin = isset($_POST['margin']) ? absint($_POST['margin']) : 0;
+        update_option('flying_images_margin', $margin);
+        
         $keywords = trim($_POST['exclude_keywords']) ? array_map('trim', explode("\n", str_replace("\r", "", sanitize_textarea_field($_POST['exclude_keywords'])))) : [];
         update_option('flying_images_exclude_keywords', $keywords);
     }

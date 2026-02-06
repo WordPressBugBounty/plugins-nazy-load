@@ -4,9 +4,9 @@ Contributors: gijo
 Donate link: https://www.buymeacoffee.com/gijovarghese
 Tags: compress images, adaptive images, cdn, image compression
 Requires at least: 4.5
-Tested up to: 6.8
+Tested up to: 6.9
 Requires PHP: 5.6
-Stable tag: 2.4.14
+Stable tag: 2.4.15
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -61,6 +61,9 @@ The complete solution for image optimization
 1. Flying Images Settings
 
 == Changelog ==
+
+= 2.4.15 =
+- Improved validation for the admin-only lazyload margin option.
 
 = 2.4.14 =
 - Increased DOM size
