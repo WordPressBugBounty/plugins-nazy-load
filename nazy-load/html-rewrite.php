@@ -1,5 +1,5 @@
 <?php
-include('lib/dom-parser.php');
+require_once __DIR__ . '/lib/dom-parser.php';
 include('lib/w3tc-bridge.php');
 include('lib/wpfc-bridge.php');
 
@@ -332,7 +332,7 @@ function flying_images_rewrite_html($html) {
         }
 
         // Parse HTML
-        $newHtml = str_get_html($html);
+        $newHtml = \FlyingImages\Html\str_get_html($html);
 
         // Not HTML, return original
         if (!is_object($newHtml)) {

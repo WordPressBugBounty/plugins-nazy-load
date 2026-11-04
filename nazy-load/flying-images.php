@@ -5,7 +5,7 @@
  * Description: Optimize and lazy load images to reduce load times, save bandwidth, and improve performance, delivering a faster and smoother user experience.
  * Author: WP Speed Matters
  * Author URI: https://wpspeedmatters.com/
- * Version: 2.4.15
+ * Version: 2.4.16
  * Text Domain: nazy-load
  */
 
@@ -16,7 +16,7 @@ if (! defined('WPINC')) {
 
 // Define constant with current version
 if (!defined('FLYING_IMAGES_VERSION')) {
-    define('FLYING_IMAGES_VERSION', '2.4.15');
+    define('FLYING_IMAGES_VERSION', '2.4.16');
 }
 
 include('init-config.php');

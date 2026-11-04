@@ -1,6 +1,8 @@
 <?php
 
-if(!class_exists('simple_html_dom')) {
+namespace FlyingImages\Html;
+
+if (!class_exists(__NAMESPACE__ . '\\simple_html_dom', false)) {
 	/**
 	 * Website: http://sourceforge.net/projects/simplehtmldom/
 	 * Additional projects: http://sourceforge.net/projects/debugobject/
@@ -23,29 +25,28 @@ if(!class_exists('simple_html_dom')) {
 	 * Version Rev. 1.9.1 (291)
 	 */
 
-	define('HDOM_TYPE_ELEMENT', 1);
-	define('HDOM_TYPE_COMMENT', 2);
-	define('HDOM_TYPE_TEXT', 3);
-	define('HDOM_TYPE_ENDTAG', 4);
-	define('HDOM_TYPE_ROOT', 5);
-	define('HDOM_TYPE_UNKNOWN', 6);
-	define('HDOM_QUOTE_DOUBLE', 0);
-	define('HDOM_QUOTE_SINGLE', 1);
-	define('HDOM_QUOTE_NO', 3);
-	define('HDOM_INFO_BEGIN', 0);
-	define('HDOM_INFO_END', 1);
-	define('HDOM_INFO_QUOTE', 2);
-	define('HDOM_INFO_SPACE', 3);
-	define('HDOM_INFO_TEXT', 4);
-	define('HDOM_INFO_INNER', 5);
-	define('HDOM_INFO_OUTER', 6);
-	define('HDOM_INFO_ENDSPACE', 7);
-
-	defined('DEFAULT_TARGET_CHARSET') || define('DEFAULT_TARGET_CHARSET', 'UTF-8');
-	defined('DEFAULT_BR_TEXT') || define('DEFAULT_BR_TEXT', "\r\n");
-	defined('DEFAULT_SPAN_TEXT') || define('DEFAULT_SPAN_TEXT', ' ');
-	defined('MAX_FILE_SIZE') || define('MAX_FILE_SIZE', 6000000);
-	define('HDOM_SMARTY_AS_TEXT', 1);
+	define(__NAMESPACE__ . '\HDOM_TYPE_ELEMENT', 1);
+	define(__NAMESPACE__ . '\HDOM_TYPE_COMMENT', 2);
+	define(__NAMESPACE__ . '\HDOM_TYPE_TEXT', 3);
+	define(__NAMESPACE__ . '\HDOM_TYPE_ENDTAG', 4);
+	define(__NAMESPACE__ . '\HDOM_TYPE_ROOT', 5);
+	define(__NAMESPACE__ . '\HDOM_TYPE_UNKNOWN', 6);
+	define(__NAMESPACE__ . '\HDOM_QUOTE_DOUBLE', 0);
+	define(__NAMESPACE__ . '\HDOM_QUOTE_SINGLE', 1);
+	define(__NAMESPACE__ . '\HDOM_QUOTE_NO', 3);
+	define(__NAMESPACE__ . '\HDOM_INFO_BEGIN', 0);
+	define(__NAMESPACE__ . '\HDOM_INFO_END', 1);
+	define(__NAMESPACE__ . '\HDOM_INFO_QUOTE', 2);
+	define(__NAMESPACE__ . '\HDOM_INFO_SPACE', 3);
+	define(__NAMESPACE__ . '\HDOM_INFO_TEXT', 4);
+	define(__NAMESPACE__ . '\HDOM_INFO_INNER', 5);
+	define(__NAMESPACE__ . '\HDOM_INFO_OUTER', 6);
+	define(__NAMESPACE__ . '\HDOM_INFO_ENDSPACE', 7);
+	define(__NAMESPACE__ . '\DEFAULT_TARGET_CHARSET', 'UTF-8');
+	define(__NAMESPACE__ . '\DEFAULT_BR_TEXT', "\r\n");
+	define(__NAMESPACE__ . '\DEFAULT_SPAN_TEXT', ' ');
+	define(__NAMESPACE__ . '\MAX_FILE_SIZE', 6000000);
+	define(__NAMESPACE__ . '\HDOM_SMARTY_AS_TEXT', 1);
 
 	function file_get_html(
 		$url,
@@ -1403,6 +1404,7 @@ if(!class_exists('simple_html_dom')) {
 		protected $cursor;
 		protected $parent;
 		protected $noise = array();
+		protected $noise_prefix;
 		protected $token_blank = " \t\r\n";
 		protected $token_equal = ' =/>';
 		protected $token_slash = " />\r\n\t";
@@ -1630,6 +1632,11 @@ if(!class_exists('simple_html_dom')) {
 			$this->clear();
 
 			$this->doc = trim($str);
+			// Use a fresh placeholder prefix that is absent from the input.
+			do {
+				$this->noise_prefix = '___noise_' . bin2hex(random_bytes(16)) . '_';
+			} while (strpos($this->doc, $this->noise_prefix) !== false);
+
 			$this->size = strlen($this->doc);
 			$this->original_size = $this->size; // original size of the html
 			$this->pos = 0;
@@ -2204,14 +2211,15 @@ if(!class_exists('simple_html_dom')) {
 			);
 
 			for ($i = $count - 1; $i > -1; --$i) {
-				$key = '___noise___' . sprintf('% 5d', count($this->noise) + 1000);
+				$key = $this->noise_prefix . count($this->noise) . '___';
 
 				if (is_object($debug_object)) {
 					$debug_object->debug_log(2, 'key is: ' . $key);
 				}
 
 				$idx = ($remove_tag) ? 0 : 1; // 0 = entire match, 1 = submatch
-				$this->noise[$key] = $matches[$i][$idx][0];
+				// Resolve placeholders from earlier passes before storing this block.
+				$this->noise[$key] = $this->restore_noise($matches[$i][$idx][0]);
 				$this->doc = substr_replace($this->doc, $key, $matches[$i][$idx][1], strlen($matches[$i][$idx][0]));
 			}
 
@@ -2228,45 +2236,14 @@ if(!class_exists('simple_html_dom')) {
 			global $debug_object;
 			if (is_object($debug_object)) { $debug_object->debug_log_entry(1); }
 
-			while (($pos = strpos($text, '___noise___')) !== false) {
-				// Sometimes there is a broken piece of markup, and we don't GET the
-				// pos+11 etc... token which indicates a problem outside of us...
-
-				// todo: "___noise___1000" (or any number with four or more digits)
-				// in the DOM causes an infinite loop which could be utilized by
-				// malicious software
-				if (strlen($text) > $pos + 15) {
-					$key = '___noise___'
-					. $text[$pos + 11]
-					. $text[$pos + 12]
-					. $text[$pos + 13]
-					. $text[$pos + 14]
-					. $text[$pos + 15];
-
-					if (is_object($debug_object)) {
-						$debug_object->debug_log(2, 'located key of: ' . $key);
-					}
-
-					if (isset($this->noise[$key])) {
-						$text = substr($text, 0, $pos)
-						. $this->noise[$key]
-						. substr($text, $pos + 16);
-					} else {
-						// do this to prevent an infinite loop.
-						$text = substr($text, 0, $pos)
-						. 'UNDEFINED NOISE FOR KEY: '
-						. $key
-						. substr($text, $pos + 16);
-					}
-				} else {
-					// There is no valid key being given back to us... We must get
-					// rid of the ___noise___ or we will have a problem.
-					$text = substr($text, 0, $pos)
-					. 'NO NUMERIC NOISE KEY'
-					. substr($text, $pos + 11);
-				}
+			if (empty($this->noise) || strpos($text, $this->noise_prefix) === false) {
+				return $text;
 			}
-			return $text;
+
+			return preg_replace_callback('/' . $this->noise_prefix . '[0-9]+___/', function ($matches) {
+				$key = $matches[0];
+				return isset($this->noise[$key]) ? $this->noise[$key] : $key;
+			}, $text);
 		}
 
 		function search_noise($text)
