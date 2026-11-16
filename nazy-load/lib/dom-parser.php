@@ -137,6 +137,7 @@ if (!class_exists(__NAMESPACE__ . '\\simple_html_dom', false)) {
 		public $_ = array();
 		public $tag_start = 0;
 		private $dom = null;
+		private $modified_attributes = array();
 
 		function __construct($dom)
 		{
@@ -473,6 +474,7 @@ if (!class_exists(__NAMESPACE__ . '\\simple_html_dom', false)) {
 				return $this->dom->restore_noise($this->_[HDOM_INFO_TEXT]);
 			}
 
+			$html = '';
 			$ret = '<' . $this->tag;
 			$i = -1;
 
@@ -481,6 +483,15 @@ if (!class_exists(__NAMESPACE__ . '\\simple_html_dom', false)) {
 
 				// skip removed attribute
 				if ($val === null || $val === false) { continue; }
+
+				// Restore parser placeholders before escaping any rewritten value.
+				if ($val !== true && isset($this->modified_attributes[$key])) {
+					$value = $this->dom->restore_noise((string) $val);
+					$html .= $this->dom->restore_noise($ret) . ' ' . $key
+						. '="' . htmlspecialchars($value, ENT_QUOTES | ENT_SUBSTITUTE | ENT_HTML5, 'UTF-8', false) . '"';
+					$ret = '';
+					continue;
+				}
 
 				$ret .= $this->_[HDOM_INFO_SPACE][$i][0];
 
@@ -505,8 +516,7 @@ if (!class_exists(__NAMESPACE__ . '\\simple_html_dom', false)) {
 				}
 			}
 
-			$ret = $this->dom->restore_noise($ret);
-			return $ret . $this->_[HDOM_INFO_ENDSPACE] . '>';
+			return $html . $this->dom->restore_noise($ret) . $this->_[HDOM_INFO_ENDSPACE] . '>';
 		}
 
 		function find($selector, $idx = null, $lowercase = false)
@@ -995,12 +1005,13 @@ if (!class_exists(__NAMESPACE__ . '\\simple_html_dom', false)) {
 					return $this->_[HDOM_INFO_INNER] = $value;
 			}
 
-			if (!isset($this->attr[$name])) {
+			if (!array_key_exists($name, $this->attr)) {
 				$this->_[HDOM_INFO_SPACE][] = array(' ', '', '');
 				$this->_[HDOM_INFO_QUOTE][] = HDOM_QUOTE_DOUBLE;
 			}
 
 			$this->attr[$name] = $value;
+			$this->modified_attributes[$name] = true;
 		}
 
 		function __isset($name)

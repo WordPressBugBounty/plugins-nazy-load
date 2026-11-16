@@ -6,7 +6,7 @@ Tags: compress images, adaptive images, cdn, image compression
 Requires at least: 4.5
 Tested up to: 7.0
 Requires PHP: 5.6
-Stable tag: 2.4.16
+Stable tag: 2.4.17
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -60,7 +60,15 @@ The complete solution for image optimization
 
 1. Flying Images Settings
 
+== Upgrade Notice ==
+
+= 2.4.17 =
+Security update. Clear all page and CDN caches after updating.
+
 == Changelog ==
+
+= 2.4.17 =
+- Security update for HTML attribute handling during image rewriting.
 
 = 2.4.16 =
 - Fixed a security issue in HTML rewriting.
